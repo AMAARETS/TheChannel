@@ -11,6 +11,7 @@ import (
 	"github.com/boj/redistore"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/gorilla/sessions"
 )
 
 var rootStaticFolder = os.Getenv("ROOT_STATIC_FOLDER")
@@ -47,7 +48,26 @@ func main() {
 		panic(err)
 	}
 	store.SetMaxAge(60 * 60 * 24 * 30)
-	store.Options.HttpOnly = true
+	store.Options = &sessions.Options{
+		Path:     "/",
+		HttpOnly: true,
+	}
+
+	// קריאת מדיניות ה-SameSite מקובץ התצורה
+	sameSitePolicy := os.Getenv("COOKIE_SAMESITE_POLICY")
+
+	switch sameSitePolicy {
+	case "None":
+		log.Println("Setting cookie SameSite policy to 'None' for cross-domain usage.")
+		store.Options.SameSite = http.SameSiteNone
+		store.Options.Secure = true // דרישת חובה עבור SameSite=None
+	case "Strict":
+		log.Println("Setting cookie SameSite policy to 'Strict'.")
+		store.Options.SameSite = http.SameSiteStrict
+	default:
+		log.Println("Setting cookie SameSite policy to 'Lax' (default).")
+		store.Options.SameSite = http.SameSiteLax
+	}
 	defer store.Close()
 
 	r := chi.NewRouter()

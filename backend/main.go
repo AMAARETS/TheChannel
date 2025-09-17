@@ -57,16 +57,16 @@ func main() {
 	sameSitePolicy := os.Getenv("COOKIE_SAMESITE_POLICY")
 
 	switch sameSitePolicy {
-	case "None":
+case "None":
 		log.Println("Setting cookie SameSite policy to 'None' for cross-domain usage.")
-		store.Options.SameSite = http.SameSiteNone
+		store.Options.SameSite = sessions.SameSiteNoneMode // <-- תיקון
 		store.Options.Secure = true // דרישת חובה עבור SameSite=None
 	case "Strict":
 		log.Println("Setting cookie SameSite policy to 'Strict'.")
-		store.Options.SameSite = http.SameSiteStrict
+		store.Options.SameSite = sessions.SameSiteStrictMode // <-- תיקון
 	default:
 		log.Println("Setting cookie SameSite policy to 'Lax' (default).")
-		store.Options.SameSite = http.SameSiteLax
+		store.Options.SameSite = sessions.SameSiteLaxMode // <-- תיקון
 	}
 	defer store.Close()
 

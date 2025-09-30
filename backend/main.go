@@ -48,6 +48,8 @@ func main() {
 		panic(err)
 	}
 	store.SetMaxAge(60 * 60 * 24 * 30)
+	store.Options.HttpOnly = true
+	/*
 	store.Options = &sessions.Options{
 		Path:     "/",
 		HttpOnly: true,
@@ -68,6 +70,7 @@ case "None":
 		log.Println("Setting cookie SameSite policy to 'Lax' (default).")
 		store.Options.SameSite = http.SameSiteLaxMode // <-- תיקון
 	}
+	*/
 	defer store.Close()
 
 	r := chi.NewRouter()

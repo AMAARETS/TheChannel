@@ -11,7 +11,7 @@ import (
 	"github.com/boj/redistore"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/gorilla/sessions"
+	
 )
 
 var rootStaticFolder = os.Getenv("ROOT_STATIC_FOLDER")

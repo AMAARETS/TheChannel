@@ -43,9 +43,8 @@ func cspFrameAncestorsMiddleware(next http.Handler) http.Handler {
 		if settingConfig.FrameAncestorsDomains != "" {
 			cspValue := "frame-ancestors 'self'"
 			cspValue = cspValue + " " + settingConfig.FrameAncestorsDomains
+			w.Header().Set("Content-Security-Policy", cspValue)
 		}
-
-		w.Header().Set("Content-Security-Policy", cspValue)
 		next.ServeHTTP(w, r)
 	})
 }

@@ -38,6 +38,18 @@ func ifRequireAuth(next http.Handler) http.Handler {
 	})
 }
 
+func cspFrameAncestorsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if settingConfig.FrameAncestorsDomains != "" {
+			cspValue := "frame-ancestors 'self'"
+			cspValue = cspValue + " " + settingConfig.FrameAncestorsDomains
+		}
+
+		w.Header().Set("Content-Security-Policy", cspValue)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	gob.Register(Session{})
 	initializePrivilegeUsers()
@@ -73,6 +85,7 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+	r.Use(cspFrameAncestorsMiddleware)
 
 	// Protected with api key
 	r.Post("/api/import/post", addNewPost)

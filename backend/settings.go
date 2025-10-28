@@ -194,6 +194,8 @@ func (s *Settings) ToConfig() *SettingConfig {
                 origins := strings.Split(originsStr, ",")
                 for i, origin := range origins {
                     config.AllowedOrigins = append(config.AllowedOrigins, strings.TrimSpace(origin))
+				}
+			}
 		}
 	}
 

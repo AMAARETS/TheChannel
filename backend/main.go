@@ -9,7 +9,6 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
-	"slices"
 
 	"github.com/boj/redistore"
 	"github.com/go-chi/chi"

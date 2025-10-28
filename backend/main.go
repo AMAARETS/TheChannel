@@ -5,9 +5,12 @@ import (
 	"encoding/gob"
 	"log"
 	"net/http"
+	"net/url"
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	"github.com/boj/redistore"
 	"github.com/go-chi/chi"
@@ -49,6 +52,44 @@ func cspFrameAncestorsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func validateOrigin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+		if len(settingConfig.AllowedOrigins) <= 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
+		if origin == "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		originURL, err := url.Parse(origin)
+		if err != nil {
+			http.Error(w, "Forbidden: Malformed Origin Header", http.StatusForbidden)
+			return
+		}
+
+		scheme := "http"
+		if r.TLS != nil {
+			scheme = "https"
+		}
+		appHostOrigin := scheme + "://" + r.Host
+
+		allowed := []string{appHostOrigin}
+		if len(settingConfig.AllowedOrigins) > 0 {
+			allowed = append(allowed, settingConfig.AllowedOrigins...)
+		}
+
+		if !slices.Contains(allowed, originURL.String()) {
+			http.Error(w, "Forbidden: Invalid Origin", http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	gob.Register(Session{})
 	initializePrivilegeUsers()
@@ -65,20 +106,17 @@ func main() {
 		HttpOnly: true,
 	}
 
-	// קריאת מדיניות ה-SameSite מקובץ התצורה
 	sameSitePolicy := os.Getenv("COOKIE_SAMESITE_POLICY")
 
 	switch sameSitePolicy {
     case "None":
 		log.Println("Setting cookie SameSite policy to 'None' for cross-domain usage.")
-		store.Options.SameSite = http.SameSiteNoneMode // <-- תיקון
-		store.Options.Secure = true // דרישת חובה עבור SameSite=None
+		store.Options.SameSite = http.SameSiteNoneMode
+		store.Options.Secure = true
 	case "Strict":
-		log.Println("Setting cookie SameSite policy to 'Strict'.")
-		store.Options.SameSite = http.SameSiteStrictMode // <-- תיקון
+		store.Options.SameSite = http.SameSiteStrictMode
 	default:
-		log.Println("Setting cookie SameSite policy to 'Lax' (default).")
-		store.Options.SameSite = http.SameSiteLaxMode // <-- תיקון
+		store.Options.SameSite = http.SameSiteLaxMode
 	}
 	defer store.Close()
 
@@ -118,6 +156,7 @@ func main() {
 
 			api.Route("/admin", func(protected chi.Router) {
 				// ⚠️ WARNING: Route not check privilege use protectedWithPrivilege to check privilege.
+				protected.Use(validateOrigin)
 
 				protected.Post("/new", protectedWithPrivilege(Writer, addMessage))
 				protected.Post("/edit-message", protectedWithPrivilege(Writer, updateMessage))

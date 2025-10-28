@@ -42,6 +42,7 @@ type SettingConfig struct {
 	CustomTitle             string
 	ContactUs               string
 	FrameAncestorsDomains   string
+	AllowedOrigins          []string
 }
 
 type Setting struct {
@@ -187,6 +188,12 @@ func (s *Settings) ToConfig() *SettingConfig {
 
 		case "frame-ancestors-domains":
 			config.FrameAncestorsDomains = setting.GetString()
+		case "allowed_origins":
+            originsStr := setting.GetString()
+            if originsStr != "" {
+                origins := strings.Split(originsStr, ",")
+                for i, origin := range origins {
+                    config.AllowedOrigins = append(config.AllowedOrigins, strings.TrimSpace(origin))
 		}
 	}
 

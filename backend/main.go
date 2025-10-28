@@ -59,7 +59,7 @@ func validateOrigin(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		
+
 		if origin == "" {
 			next.ServeHTTP(w, r)
 			return
@@ -77,12 +77,17 @@ func validateOrigin(next http.Handler) http.Handler {
 		}
 		appHostOrigin := scheme + "://" + r.Host
 
-		allowed := []string{appHostOrigin}
+		allowed := make(map[string]struct{})
+		
+		allowed[appHostOrigin] = struct{}{}
+
 		if len(settingConfig.AllowedOrigins) > 0 {
-			allowed = append(allowed, settingConfig.AllowedOrigins...)
+			for _, allowedOrigin := range settingConfig.AllowedOrigins {
+				allowed[allowedOrigin] = struct{}{}
+			}
 		}
 
-		if !slices.Contains(allowed, originURL.String()) {
+		if _, ok := allowed[originURL.String()]; !ok {
 			http.Error(w, "Forbidden: Invalid Origin", http.StatusForbidden)
 			return
 		}

@@ -49,7 +49,10 @@ func (el *EventListener) Close() {
 }
 
 func (el *EventListener) Send(mp string) {
-	el.ClientCh <- mp
+	select {
+	case el.ClientCh <- mp:
+	default:
+	}
 }
 
 type PushType int
@@ -243,7 +246,8 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
 		Privileges: user.Privileges,
 		ClientCh:   make(chan string, 10),
 	}
-	// חוסם את התוכנית, אחרת הלקוח לא יהיה רשום לקבלת הודעות.
+
+	/*go*/
 	el.Add()
 	defer el.Close()
 

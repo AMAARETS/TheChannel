@@ -95,12 +95,13 @@ func setMessage(ctx context.Context, m *Message, isUpdate bool) error {
 	}
 
 	pushType := NewMessage
-	if isScheduling {
-		pushType = MsgBeforeScheduling
-	} else if isUpdate {
+	if isUpdate {
 		pushType = EditMessage
+	} else if isScheduling {
+		pushType = MsgBeforeScheduling
 	}
-	pushSseMessage(pushType, m)
+	log.Printf("Pushing message of type %d\n", pushType)
+	go pushSseMessage(pushType, m)
 
 	return nil
 }
@@ -142,7 +143,7 @@ func setReaction(ctx context.Context, messageId int, emoji string, userId string
 		Reactions: r,
 	}
 
-	pushSseMessage(Reaction, m)
+	go pushSseMessage(Reaction, m)
 
 	return nil
 }
@@ -340,7 +341,7 @@ func funcDeleteMessage(ctx context.Context, id string) error {
 	m.Text = "*ההודעה נמחקה*"
 	m.File = FileResponse{}
 
-	pushSseMessage(DeleteMessage, m)
+	go pushSseMessage(DeleteMessage, m)
 
 	return nil
 }
@@ -615,10 +616,9 @@ func dbGetPeakSSEConnections(ctx context.Context) (*PeakSSEConnections, error) {
 	}
 
 	var peak PeakSSEConnections
-	vel, _ := dyno.GetInt(p["value"])
+	vel, _ := dyno.GetInteger(p["value"])
 	timestamp, _ := dyno.GetInteger(p["timestamp"])
-
-	peak.Value = vel
+	peak.Value = int(vel)
 	peak.Timestamp = time.Unix(timestamp, 0)
 
 	return &peak, nil

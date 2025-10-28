@@ -192,7 +192,7 @@ func (s *Settings) ToConfig() *SettingConfig {
             originsStr := setting.GetString()
             if originsStr != "" {
                 origins := strings.Split(originsStr, ",")
-                for i, origin := range origins {
+                for _, origin := range origins {
                     config.AllowedOrigins = append(config.AllowedOrigins, strings.TrimSpace(origin))
 				}
 			}

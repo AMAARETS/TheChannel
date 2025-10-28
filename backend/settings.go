@@ -43,6 +43,7 @@ type SettingConfig struct {
 	ContactUs               string
 	FrameAncestorsDomains   string
 	AllowedOrigins          []string
+	validateOrigin          bool
 }
 
 type Setting struct {
@@ -186,7 +187,7 @@ func (s *Settings) ToConfig() *SettingConfig {
 		case "fcm_json_universe_domain":
 			config.FcmJson.UniverseDomain = setting.GetString()
 
-		case "frame-ancestors-domains":
+		case "frame_ancestors_domains":
 			config.FrameAncestorsDomains = setting.GetString()
 		case "allowed_origins":
             originsStr := setting.GetString()
@@ -196,6 +197,8 @@ func (s *Settings) ToConfig() *SettingConfig {
                     config.AllowedOrigins = append(config.AllowedOrigins, strings.TrimSpace(origin))
 				}
 			}
+		case "validate_Origin":
+			config.validateOrigin = setting.GetBool()
 		}
 	}
 

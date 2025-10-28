@@ -54,7 +54,7 @@ func validateOrigin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
 
-		if len(settingConfig.AllowedOrigins) <= 0 {
+		if !settingConfig.validateOrigin {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -115,7 +115,6 @@ func main() {
 
 	switch sameSitePolicy {
     case "None":
-		log.Println("Setting cookie SameSite policy to 'None' for cross-domain usage.")
 		store.Options.SameSite = http.SameSiteNoneMode
 		store.Options.Secure = true
 	case "Strict":

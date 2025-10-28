@@ -205,7 +205,7 @@ func (s *Setting) GetBool() bool {
 	return b
 }
 
-func (s *Setting) GetString() string {
+func (s *Setting) GetString()  string {
 	str, _ := dyno.GetString(s.Value)
 	return str
 }
